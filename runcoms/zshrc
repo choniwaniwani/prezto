@@ -29,3 +29,6 @@ export PATH=$HOME/.nodebrew/current/bin:$PATH
 
 alias "?s"="gh copilot suggest"
 alias "?e"="gh copilot explain"
+
+# Add fzf(fuzzy finder) to path
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
