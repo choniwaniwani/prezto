@@ -24,3 +24,8 @@ fi
 
 # Add /opt/homebrew/bin to path
 export PATH=/opt/homebrew/bin:$PATH
+# Add nodebrew to path
+export PATH=$HOME/.nodebrew/current/bin:$PATH
+
+alias "?s"="gh copilot suggest"
+alias "?e"="gh copilot explain"
