@@ -32,3 +32,9 @@ alias "?e"="gh copilot explain"
 
 # Add fzf(fuzzy finder) to path
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+fpath=(~/.zsh/completion $fpath)
+autoload -Uz compinit && compinit -i
+
+alias fzfv='fzf --preview "bat  --color=always --style=header,grid --line-range :100\
+ {}"'
