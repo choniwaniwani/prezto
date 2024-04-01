@@ -1,3 +1,5 @@
+自分用にruncoms以下の設定ファイルをpushしておけると便利なのでforkしているリポジトリです。
+
 # Prezto — Instantly Awesome Zsh
 
 Prezto is the configuration framework for [Zsh][1]; it enriches the command line
