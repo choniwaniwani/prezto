@@ -1,10 +1,3 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 #
 # Executes commands at the start of an interactive session.
 #
@@ -26,7 +19,11 @@ if [[ $(uname) == 'Darwin' ]]; then
 fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+if [[ "$TERM" == "linux" ]]; then
+  PROMPT='%F{green}%n@%m%f %F{blue}%~%f %# '
+else
+  [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+fi
 # Add nodebrew to path
 export PATH=$HOME/.nodebrew/current/bin:$PATH
 
@@ -44,7 +41,8 @@ alias fzfv='fzf --preview "bat  --color=always --style=header,grid --line-range 
 
 # fzf history
 function fzf-select-history() {
-    BUFFER=$(history -r 1 | fzf --query "$LBUFFER" --no-sort | awk '{$1=""; print $0}' | sed 's/^ *//')
+    BUFFER=$(~/.zsh/fzf-history.sh | fzf --query "$LBUFFER" --scheme=default \
+        --bind "ctrl-d:execute-silent(~/.zsh/fzf-history.sh delete {})+reload(~/.zsh/fzf-history.sh)")
     CURSOR=$#BUFFER
     zle reset-prompt
 }
@@ -71,30 +69,58 @@ function fzf-cdr() {
 }
 zle -N fzf-cdr
 setopt noflowcontrol
+setopt HIST_IGNORE_ALL_DUPS
 bindkey '^q' fzf-cdr
 
-# sshの実行前後にiterm2のprofileを変更する関数
-function ssh() {
-  if [[ $1 == *".spider-net.jp"* ]]; then
-    if [[ $1 != *".dev."* && $1 != *"test"* ]]; then
-      # 本番環境
-      echo -e "\033]50;SetProfile=SpiderNet\a"
-    else if [[ $1 == *"3dv"* ]]; then
-      # 3dvサーバーのtest,dev環境
-      echo -e "\033]50;SetProfile=3dv-dev\a"
-    else
-      # classicサーバーのtest,dev環境
-      echo -e "\033]50;SetProfile=classic-dev\a"
-    fi
-  fi
-
-  command ssh "$@"
-  echo -e "\033]50;SetProfile=Default\a"
-}
-
 # deno
-export DENO_INSTALL="${HOME}/.deno"
-export PATH="$DENO_INSTALL/bin:$PATH"
+# export DENO_INSTALL="${HOME}/.deno"
+# export PATH="$DENO_INSTALL/bin:$PATH"
 
 # .zshrc実行後に行いたいカスタマイズ
 source ~/.zshrc_after
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# .nvmrc があれば自動で nvm use する
+autoload -U add-zsh-hook
+load-nvmrc() {
+  local nvmrc_path="$(nvm_find_nvmrc)"
+  if [ -n "$nvmrc_path" ]; then
+    local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
+    if [ "$nvmrc_node_version" = "N/A" ]; then
+      nvm install
+    elif [ "$nvmrc_node_version" != "$(nvm version)" ]; then
+      nvm use
+    fi
+  fi
+}
+add-zsh-hook chpwd load-nvmrc
+load-nvmrc
+
+# ssh-agentの起動
+# 既に `ssh-agent` が動いているか確認し、なければ起動する
+if ! pgrep -x "ssh-agent" > /dev/null; then
+    eval "$(ssh-agent -s)"
+fi
+export SSH_AUTH_SOCK=$(find /tmp/ -type s -name 'agent.*' 2>/dev/null | head -n 1)
+# Pyenv設定 (company-regulations)
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+if command -v pyenv >/dev/null 2>&1; then
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+fi
+
+if [[ "${TERM_PROGRAM:-}" == "vscode" ]] && command -v code >/dev/null 2>&1; then
+    VSCODE_ZSH_INTEGRATION="$(code --locate-shell-integration-path zsh 2>/dev/null || true)"
+    if [[ -n "$VSCODE_ZSH_INTEGRATION" && -r "$VSCODE_ZSH_INTEGRATION" ]]; then
+        source "$VSCODE_ZSH_INTEGRATION"
+    fi
+fi
+
+# Go
+export PATH=/usr/local/go/bin:$HOME/go/bin:$PATH
+
+# Claude Code (native binary)
+export PATH="$HOME/.local/bin:$PATH"
