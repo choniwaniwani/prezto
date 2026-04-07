@@ -72,16 +72,28 @@ setopt noflowcontrol
 setopt HIST_IGNORE_ALL_DUPS
 bindkey '^q' fzf-cdr
 
+# sshを実行したあとにechoを実行する関数を定義
+function ssh() {
+  echo -e "\033]50;SetProfile=$1\a"
+  command ssh "$@"
+  echo -e "\033]50;SetProfile=Default\a"
+}
+
 # deno
 # export DENO_INSTALL="${HOME}/.deno"
 # export PATH="$DENO_INSTALL/bin:$PATH"
 
 # .zshrc実行後に行いたいカスタマイズ
-source ~/.zshrc_after
+if [[ -r "${HOME}/.zshrc_after" ]]; then
+  source "${HOME}/.zshrc_after"
+fi
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+nvm use default >/dev/null 2>&1
+
 # .nvmrc があれば自動で nvm use する
 autoload -U add-zsh-hook
 load-nvmrc() {

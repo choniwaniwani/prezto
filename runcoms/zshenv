@@ -10,7 +10,7 @@ if [[ ( "$SHLVL" -eq 1 && ! -o LOGIN ) && -s "${ZDOTDIR:-$HOME}/.zprofile" ]]; t
   source "${ZDOTDIR:-$HOME}/.zprofile"
 fi
 
-if [[ $(uname) == 'Darwin' ]]; then
+if [[ $(uname) == 'Darwin' && -x /opt/homebrew/bin/brew ]]; then
   # Homebrew
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi

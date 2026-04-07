@@ -71,3 +71,11 @@ fi
 if [[ -z "$LESSOPEN" ]] && (( $#commands[(i)lesspipe(|.sh)] )); then
   export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
 fi
+
+# Ensure nvm-managed Node.js is available for login shells
+if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
+  export NVM_DIR="$HOME/.nvm"
+  # shellcheck disable=SC1090
+  . "$NVM_DIR/nvm.sh"
+  nvm use default >/dev/null 2>&1
+fi
